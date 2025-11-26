@@ -1,6 +1,6 @@
 const Attendance = require("../models/Attendance");
 
-const COMPANY_IP_PREFIX = "192.168.29"; // Change to your company WiFi IP range
+const COMPANY_IP_PREFIX = "192.168.29.1"; // Change to your company WiFi IP range
 
 exports.markAttendance = async (req, res) => {
   try {
