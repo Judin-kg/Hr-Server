@@ -96,7 +96,7 @@
 
 const Attendance = require("../models/Attendance");
 
-const COMPANY_IP_PREFIX = "192.168.29";
+const COMPANY_IP_PREFIX = "192.168.29.1";
 
 exports.markAttendance = async (req, res) => {
   try {
