@@ -43,12 +43,20 @@ exports.markAttendance = async (req, res) => {
   try {
     const { employeeId } = req.body;
 
-    let ip =
-      req.headers["x-forwarded-for"] ||
-      req.connection.remoteAddress ||
-      req.socket.remoteAddress;
+    // let ip =
+    //   req.headers["x-forwarded-for"] ||
+    //   req.connection.remoteAddress ||
+    //   req.socket.remoteAddress;
 
-    ip = ip.replace("::ffff:", ""); // Fix IPv6
+    // ip = ip.replace("::ffff:", ""); // Fix IPv6
+
+    let ip = req.headers["x-forwarded-for"]?.split(",")[0].trim()
+        || req.socket.remoteAddress
+        || req.connection.remoteAddress;
+
+ip = ip.replace("::ffff:", "");
+console.log("User IP:", ip);
+
 
     console.log("User IP:", ip);
 
