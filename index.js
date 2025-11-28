@@ -34,8 +34,7 @@ const employeeRoutes = require("./routes/employeeRoutes");
 const seedEmployee = require("./seedEmployee");
 
 const app = express();
-// ✅ Trust proxy to get correct client IP
-app.set("trust proxy", true);
+
 
 // Middlewares
 app.use(cors());
