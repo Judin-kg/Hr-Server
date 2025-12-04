@@ -1,19 +1,20 @@
 const express = require("express");
 const router = express.Router();
-const Employee = require("../models/Employee");
+const {
+  loginEmployee,
+  createEmployee,
+  getEmployees
+} = require("../controllers/employeeController");
 
-// Employee Login
-router.post("/login", async (req, res) => {
-  const { empId, password } = req.body;
+// Login (EMPLOYEE + ADMIN)
+router.post("/login", loginEmployee);
 
-  const user = await Employee.findOne({ empId });
+// Create Employee (Admin only — add auth later)
+router.post("/create", createEmployee);
 
-  if (!user || user.password !== password) {
-    return res.status(400).json({ message: "Invalid Credentials" });
-  }
-
-  res.json({ message: "Login Successful", employee: user });
-});
+// Get All Employees
+router.get("/all", getEmployees);
 
 module.exports = router;
+
 

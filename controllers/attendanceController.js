@@ -54,21 +54,103 @@
 
 
 
+// const Attendance = require("../models/Attendance");
+
+// // Company WiFi IP
+// const COMPANY_IP_PREFIX = "49.47.197.59";
+
+// // Time restrictions (10:00 AM to 10:15 AM)
+// const START_TIME = "10:00";
+// const END_TIME = "10:15";
+
+// function isWithinTimeRange() {
+//   const now = new Date();
+
+//   // Current time as HH:MM (24 hr format)
+//   const current = now.toTimeString().slice(0, 5);
+
+//   return current >= START_TIME && current <= END_TIME;
+// }
+
+// exports.markAttendance = async (req, res) => {
+//   try {
+//     const { employeeId } = req.body;
+
+//     // Extract real IP
+//     let ip =
+//       req.headers["x-forwarded-for"]?.split(",")[0].trim() ||
+//       req.socket.remoteAddress ||
+//       req.connection.remoteAddress;
+
+//     ip = ip.replace("::ffff:", "");
+
+//     console.log("User IP:", ip);
+
+//     // WiFi check
+//     if (!ip.startsWith(COMPANY_IP_PREFIX)) {
+//       return res.status(403).json({
+//         message: "Attendance failed. Connect to Company WiFi.",
+//       });
+//     }
+
+//     // Time check
+//     if (!isWithinTimeRange()) {
+//       return res.status(403).json({
+//         message: "Attendance can only be marked between 10:00 AM and 10:15 AM.",
+//       });
+//     }
+
+//     const today = new Date().toISOString().split("T")[0];
+
+//     const attendance = new Attendance({
+//       employeeId,
+//       date: today,
+//       time: new Date().toLocaleTimeString(),
+//       status: "Present",
+//     });
+
+//     await attendance.save();
+
+//     res.json({
+//       message: "Attendance Marked Successfully",
+//       attendance,
+//     });
+//   } catch (err) {
+//     res.status(500).json({ message: "Server Error" });
+//   }
+// };
+
+
+// exports.getAllAttendance = async (req, res) => {
+//   try {
+//     const attendance = await Attendance.find().sort({ date: -1, time: -1 });
+//     res.json(attendance);
+//   } catch (err) {
+//     res.status(500).json({ message: "Server Error" });
+//   }
+// };
+
+
+
+
+
+
+
+
+
 const Attendance = require("../models/Attendance");
+const Employee = require("../models/Employee"); // ⬅️ Import employee model
 
 // Company WiFi IP
 const COMPANY_IP_PREFIX = "49.47.197.59";
 
 // Time restrictions (10:00 AM to 10:15 AM)
 const START_TIME = "10:00";
-const END_TIME = "10:15";
+const END_TIME = "10:30";
 
 function isWithinTimeRange() {
   const now = new Date();
-
-  // Current time as HH:MM (24 hr format)
   const current = now.toTimeString().slice(0, 5);
-
   return current >= START_TIME && current <= END_TIME;
 }
 
@@ -76,7 +158,23 @@ exports.markAttendance = async (req, res) => {
   try {
     const { employeeId } = req.body;
 
-    // Extract real IP
+    // 🔥 1️⃣ Check if Employee ID is empty
+    if (!employeeId || employeeId.trim() === "") {
+      return res.status(400).json({
+        message: "Employee ID is required.",
+      });
+    }
+
+    // 🔥 2️⃣ Validate Employee exists
+    const employee = await Employee.findOne({ empId: employeeId });
+
+    if (!employee) {
+      return res.status(404).json({
+        message: "Invalid Employee ID. Employee not found.",
+      });
+    }
+
+    // Extract IP
     let ip =
       req.headers["x-forwarded-for"]?.split(",")[0].trim() ||
       req.socket.remoteAddress ||
@@ -86,14 +184,14 @@ exports.markAttendance = async (req, res) => {
 
     console.log("User IP:", ip);
 
-    // WiFi check
+    // 🔥 3️⃣ WiFi IP check
     if (!ip.startsWith(COMPANY_IP_PREFIX)) {
       return res.status(403).json({
         message: "Attendance failed. Connect to Company WiFi.",
       });
     }
 
-    // Time check
+    // 🔥 4️⃣ Time check
     if (!isWithinTimeRange()) {
       return res.status(403).json({
         message: "Attendance can only be marked between 10:00 AM and 10:15 AM.",
@@ -121,3 +219,11 @@ exports.markAttendance = async (req, res) => {
 };
 
 
+exports.getAllAttendance = async (req, res) => {
+  try {
+    const attendance = await Attendance.find().sort({ date: -1, time: -1 });
+    res.json(attendance);
+  } catch (err) {
+    res.status(500).json({ message: "Server Error" });
+  }
+};

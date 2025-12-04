@@ -69,6 +69,7 @@ require("dotenv").config();
 
 const attendanceRoutes = require("./routes/attendanceRoutes");
 const employeeRoutes = require("./routes/employeeRoutes");
+const departmentRoutes = require("./routes/departmentRoutes");
 const seedEmployee = require("./seedEmployee");
 
 const app = express();
@@ -91,6 +92,7 @@ seedEmployee()
 // Routes
 app.use("/api/attendance", attendanceRoutes);
 app.use("/api/employee", employeeRoutes);
+app.use("/api/department", departmentRoutes);
 
 // Root Check
 app.get("/", (req, res) => res.send("HR Attendance API Running"));

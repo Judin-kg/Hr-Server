@@ -10,7 +10,7 @@ async function seedEmployee() {
     }
 
      const admin = new Employee({
-      name: "superadmin",  // 👈 required field
+      name: "employee1",  // 👈 required field
        empId: "rj123",
       password: "securepassword123",
      });
