@@ -5,6 +5,7 @@ const attendanceSchema = new mongoose.Schema({
   date: String,
   time: String,
   status: String,
+ wifiIp: String, // ⬅️ Add this field
 });
 
 module.exports = mongoose.model("Attendance", attendanceSchema);
