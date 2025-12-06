@@ -250,7 +250,7 @@ const COMPANY_IP_PREFIX = "49.47.197.59";
 
 // Time restrictions (10:00 AM to 10:30 AM)
 const START_TIME = "10:00";
-const END_TIME = "10:30";
+const END_TIME = "16:00";
 
 function isWithinTimeRange() {
   const now = new Date();
