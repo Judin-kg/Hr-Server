@@ -284,194 +284,41 @@
 
 
 
-// const Attendance = require("../models/Attendance");
-// const Employee = require("../models/Employee");
-
-// // Company WiFi IP
-// const COMPANY_IP_PREFIX = "49.47.197.59";
-
-// // Time restrictions (10:00 AM to 10:20 AM)
-// const START_TIME = "10:00";
-// const END_TIME = "10:20";
-
-// function isWithinTimeRange() {
-//   const now = new Date();
-//   const current = now.toTimeString().slice(0, 5);
-//   return current >= START_TIME && current <= END_TIME;
-// }
-
-// // -------------------------------------------
-// // MARK ATTENDANCE
-// // -------------------------------------------
-// exports.markAttendance = async (req, res) => {
-//   try {
-//     const { employeeId } = req.body;
-
-//     // 1️⃣ Validate empId
-//     if (!employeeId || employeeId.trim() === "") {
-//       return res.status(400).json({ message: "Employee ID is required." });
-//     }
-
-//     // 2️⃣ Check if employee exists
-//     const employee = await Employee.findOne({ empId: employeeId });
-//     if (!employee) {
-//       return res.status(404).json({ message: "Invalid Employee ID!" });
-//     }
-
-//     // 3️⃣ Extract user IP
-//     let ip =
-//       req.headers["x-forwarded-for"]?.split(",")[0].trim() ||
-//       req.socket.remoteAddress ||
-//       req.connection.remoteAddress;
-
-//     ip = ip.replace("::ffff:", "");
-//     console.log("User IP:", ip);
-
-//     // 4️⃣ WiFi IP check
-//     if (!ip.startsWith(COMPANY_IP_PREFIX)) {
-//       return res.status(403).json({
-//         message: "Attendance failed. Connect to Company WiFi.",
-//       });
-//     }
-
-//     // 5️⃣ Time check
-//     if (!isWithinTimeRange()) {
-//       return res.status(403).json({
-//         message: "Attendance allowed only between 10:00 AM and 10:20 AM.",
-//       });
-//     }
-
-//     const today = new Date().toISOString().split("T")[0];
-
-//     // 6️⃣ Prevent marking multiple times
-//     const alreadyMarked = await Attendance.findOne({
-//       employeeId,
-//       date: today,
-//     });
-
-//     if (alreadyMarked) {
-//       return res.status(400).json({
-//         message: "Attendance already marked for today!",
-//       });
-//     }
-
-//     // 7️⃣ Prevent multiple attendance from same IP
-//     const sameIpMarked = await Attendance.findOne({
-//       date: today,
-//       wifiIp: ip,
-//     });
-
-//     if (sameIpMarked) {
-//       return res.status(400).json({
-//         message: "Attendance already marked from this WiFi IP today!",
-//       });
-//     }
-
-//     // 8️⃣ Save attendance
-//     const attendance = new Attendance({
-//       employeeId,
-//       date: today,
-//       time: new Date().toLocaleTimeString(),
-//       status: "Present",
-//       wifiIp: ip,
-//     });
-
-//     await attendance.save();
-
-//     res.json({
-//       message: "Attendance Marked Successfully",
-//       attendance,
-//     });
-//   } catch (err) {
-//     console.error(err);
-//     res.status(500).json({ message: "Server Error" });
-//   }
-// };
-
-// // -------------------------------------------
-// // GET ALL ATTENDANCE (with ABSENT auto-detect)
-// // -------------------------------------------
-// exports.getAllAttendance = async (req, res) => {
-//   try {
-//     const today = new Date().toISOString().split("T")[0];
-
-//     // Fetch all employees
-//     const employees = await Employee.find();
-
-//     // Fetch marked attendance
-//     const attendanceToday = await Attendance.find({ date: today });
-
-//     const presentMap = {};
-//     attendanceToday.forEach((a) => {
-//       presentMap[a.employeeId] = a;
-//     });
-
-//     const finalRecords = [];
-
-//     // Add PRESENT records
-//     finalRecords.push(...attendanceToday);
-
-//     // Add ABSENT records (not stored in DB)
-//     employees.forEach((emp) => {
-//       if (!presentMap[emp.empId]) {
-//         finalRecords.push({
-//           employeeId: emp.empId,
-//           date: today,
-//           time: "00:00",
-//           status: "Absent",
-//         });
-//       }
-//     });
-
-//     // Sort by employee ID
-//     finalRecords.sort((a, b) =>
-//       a.employeeId.localeCompare(b.employeeId)
-//     );
-
-//     res.json(finalRecords);
-//   } catch (err) {
-//     console.log(err);
-//     res.status(500).json({ message: "Server Error" });
-//   }
-// };
-
-
 const Attendance = require("../models/Attendance");
 const Employee = require("../models/Employee");
 
 // Company WiFi IP
 const COMPANY_IP_PREFIX = "49.47.197.59";
 
-// Updated Time Range (10:00 AM to 10:30 AM)
+// Time restrictions (10:00 AM to 10:20 AM)
 const START_TIME = "10:00";
-const END_TIME = "10:30";
+const END_TIME = "14:00";
 
-// Check Time Range Function
 function isWithinTimeRange() {
   const now = new Date();
   const current = now.toTimeString().slice(0, 5);
   return current >= START_TIME && current <= END_TIME;
 }
 
-// --------------------------------------------------
+// -------------------------------------------
 // MARK ATTENDANCE
-// --------------------------------------------------
+// -------------------------------------------
 exports.markAttendance = async (req, res) => {
   try {
     const { employeeId } = req.body;
 
-    // Validate ID
+    // 1️⃣ Validate empId
     if (!employeeId || employeeId.trim() === "") {
       return res.status(400).json({ message: "Employee ID is required." });
     }
 
-    // Check employee exists
+    // 2️⃣ Check if employee exists
     const employee = await Employee.findOne({ empId: employeeId });
     if (!employee) {
       return res.status(404).json({ message: "Invalid Employee ID!" });
     }
 
-    // Extract IP
+    // 3️⃣ Extract user IP
     let ip =
       req.headers["x-forwarded-for"]?.split(",")[0].trim() ||
       req.socket.remoteAddress ||
@@ -480,23 +327,23 @@ exports.markAttendance = async (req, res) => {
     ip = ip.replace("::ffff:", "");
     console.log("User IP:", ip);
 
-    // Check WiFi IP
+    // 4️⃣ WiFi IP check
     if (!ip.startsWith(COMPANY_IP_PREFIX)) {
       return res.status(403).json({
         message: "Attendance failed. Connect to Company WiFi.",
       });
     }
 
-    // Check time
+    // 5️⃣ Time check
     if (!isWithinTimeRange()) {
       return res.status(403).json({
-        message: "Attendance allowed only between 10:00 AM and 10:30 AM.",
+        message: "Attendance allowed only between 10:00 AM and 10:20 AM.",
       });
     }
 
     const today = new Date().toISOString().split("T")[0];
 
-    // Prevent multiple attendance
+    // 6️⃣ Prevent marking multiple times
     const alreadyMarked = await Attendance.findOne({
       employeeId,
       date: today,
@@ -508,7 +355,7 @@ exports.markAttendance = async (req, res) => {
       });
     }
 
-    // Prevent duplicate IP entries
+    // 7️⃣ Prevent multiple attendance from same IP
     const sameIpMarked = await Attendance.findOne({
       date: today,
       wifiIp: ip,
@@ -520,7 +367,7 @@ exports.markAttendance = async (req, res) => {
       });
     }
 
-    // Save attendance
+    // 8️⃣ Save attendance
     const attendance = new Attendance({
       employeeId,
       date: today,
@@ -541,15 +388,17 @@ exports.markAttendance = async (req, res) => {
   }
 };
 
-// --------------------------------------------------
-// GET ALL ATTENDANCE + AUTO ABSENT
-// --------------------------------------------------
+// -------------------------------------------
+// GET ALL ATTENDANCE (with ABSENT auto-detect)
+// -------------------------------------------
 exports.getAllAttendance = async (req, res) => {
   try {
     const today = new Date().toISOString().split("T")[0];
 
+    // Fetch all employees
     const employees = await Employee.find();
 
+    // Fetch marked attendance
     const attendanceToday = await Attendance.find({ date: today });
 
     const presentMap = {};
@@ -559,10 +408,10 @@ exports.getAllAttendance = async (req, res) => {
 
     const finalRecords = [];
 
-    // Present
+    // Add PRESENT records
     finalRecords.push(...attendanceToday);
 
-    // Absent
+    // Add ABSENT records (not stored in DB)
     employees.forEach((emp) => {
       if (!presentMap[emp.empId]) {
         finalRecords.push({
@@ -574,7 +423,10 @@ exports.getAllAttendance = async (req, res) => {
       }
     });
 
-    finalRecords.sort((a, b) => a.employeeId.localeCompare(b.employeeId));
+    // Sort by employee ID
+    finalRecords.sort((a, b) =>
+      a.employeeId.localeCompare(b.employeeId)
+    );
 
     res.json(finalRecords);
   } catch (err) {
@@ -582,3 +434,5 @@ exports.getAllAttendance = async (req, res) => {
     res.status(500).json({ message: "Server Error" });
   }
 };
+
+
