@@ -453,24 +453,41 @@ const Employee = require("../models/Employee");
 const COMPANY_IP_PREFIX = "49.47.197.59";
 
 // Attendance allowed time (10:00 AM → 1:00 PM)
-const START_TIME = "10:00";
-const END_TIME = "15:00";
+// const START_TIME = "10:00";
+// const END_TIME = "15:00";
 
 // Convert "HH:MM" → total minutes
-function toMinutes(timeStr) {
-  const [h, m] = timeStr.split(":").map(Number);
-  return h * 60 + m;
-}
+// function toMinutes(timeStr) {
+//   const [h, m] = timeStr.split(":").map(Number);
+//   return h * 60 + m;
+// }
 
 // Time range check (fixed)
+// function isWithinTimeRange() {
+//   const now = new Date();
+//   const currentMinutes = now.getHours() * 60 + now.getMinutes();
+//   const startMinutes = toMinutes(START_TIME);
+//   const endMinutes = toMinutes(END_TIME);
+
+//   return currentMinutes >= startMinutes && currentMinutes <= endMinutes;
+// }
+
+
 function isWithinTimeRange() {
   const now = new Date();
-  const currentMinutes = now.getHours() * 60 + now.getMinutes();
-  const startMinutes = toMinutes(START_TIME);
-  const endMinutes = toMinutes(END_TIME);
 
-  return currentMinutes >= startMinutes && currentMinutes <= endMinutes;
+  // Convert UTC → IST
+  const istOffset = 5.5 * 60 * 60 * 1000;
+  const istTime = new Date(now.getTime() + istOffset);
+
+  const currentMinutes = istTime.getHours() * 60 + istTime.getMinutes();
+
+  const start = 10 * 60;   // 10:00 AM IST
+  const end = 13 * 60;     // 1:00 PM IST
+
+  return currentMinutes >= start && currentMinutes <= end;
 }
+
 
 // -----------------------------------------------------
 // MARK ATTENDANCE
@@ -606,3 +623,8 @@ exports.getAllAttendance = async (req, res) => {
     res.status(500).json({ message: "Server Error" });
   }
 };
+
+
+
+
+
