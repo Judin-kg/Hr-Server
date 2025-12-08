@@ -545,16 +545,17 @@ exports.markAttendance = async (req, res) => {
     }
 
     // 7️⃣ Prevent multiple marks from same IP
-    const sameIpMarked = await Attendance.findOne({
-      date: today,
-      wifiIp: ip,
-    });
+    
+    // const sameIpMarked = await Attendance.findOne({
+    //   date: today,
+    //   wifiIp: ip,
+    // });
 
-    if (sameIpMarked) {
-      return res.status(400).json({
-        message: "Attendance already marked from this WiFi IP today!",
-      });
-    }
+    // if (sameIpMarked) {
+    //   return res.status(400).json({
+    //     message: "Attendance already marked from this WiFi IP today!",
+    //   });
+    // }
 
     // 8️⃣ Save attendance
     const attendance = new Attendance({
