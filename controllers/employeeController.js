@@ -67,3 +67,41 @@ exports.getEmployees = async (req, res) => {
     res.status(500).json({ message: "Server Error" });
   }
 };
+
+// Delete Employee (Admin only)
+// exports.deleteEmployee = async (req, res) => {
+//   try {
+//     const { empId } = req.params;
+//       console.log(req.params,"empIdddddd");
+//       console.log("Deleting Employee with ID:", empId);
+//     const emp = await Employee.findOneAndDelete({ empId });
+//      console.log(emp,"pppppppppppppppppppp");
+     
+//     if (!emp) {
+//       return res.status(404).json({ message: "Employee not found" });
+//     }
+
+//     res.json({ message: "Employee deleted successfully" });
+
+//   } catch (err) {
+//     console.log("Delete Employee Error:", err);
+//     res.status(500).json({ message: "Server Error" });
+//   }
+// };
+exports.deleteEmployee = async (req, res) => {
+  try {
+    const { empId } = req.params;
+
+    const deleted = await Employee.findOneAndDelete({ _id: empId });
+
+    if (!deleted) {
+      return res.status(404).json({ message: "Employee not found" });
+    }
+
+    res.json({ message: "Employee deleted successfully" });
+
+  } catch (err) {
+    console.log("Delete Employee Error:", err);
+    res.status(500).json({ message: "Server Error" });
+  }
+};
