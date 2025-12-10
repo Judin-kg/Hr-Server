@@ -23,4 +23,34 @@ router.get("/all", async (req, res) => {
   }
 });
 
+// ---------------------------------------------
+// UPDATE DEPARTMENT
+// ---------------------------------------------
+router.put("/update/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    await Department.findByIdAndUpdate(id, req.body);
+
+    res.json({ message: "Department Updated Successfully" });
+  } catch (err) {
+    res.status(500).json({ message: "Error updating department" });
+  }
+});
+
+// ---------------------------------------------
+// DELETE DEPARTMENT
+// ---------------------------------------------
+router.delete("/delete/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    await Department.findByIdAndDelete(id);
+
+    res.json({ message: "Department Deleted Successfully" });
+  } catch (err) {
+    res.status(500).json({ message: "Error deleting department" });
+  }
+});
+
 module.exports = router;

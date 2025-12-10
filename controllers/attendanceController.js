@@ -431,6 +431,31 @@ function getISTMinutes() {
   return ist.getHours() * 60 + ist.getMinutes();
 }
 
+// -------------------------------------------------------------
+// CREATE UTC + IST TIMESTAMP VALUES
+// -------------------------------------------------------------
+function getTimestampsIST() {
+  const now = new Date();
+
+  // UTC timestamp (ISO)
+  const utcIso = now.toISOString();
+
+  // Compute IST time
+  const istOffset = 5.5 * 60 * 60 * 1000;
+  const ist = new Date(now.getTime() + istOffset);
+
+  // Format IST display time
+  const istTimeStr = ist.toLocaleTimeString("en-IN", {
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: true,
+  });
+
+  return { utcIso, istTimeStr };
+}
+
+
 exports.markAttendance = async (req, res) => {
   try {
     const { employeeId } = req.body;
@@ -503,16 +528,29 @@ exports.markAttendance = async (req, res) => {
       });
     }
 
-    // Save attendance
-    const attendance = new Attendance({
-      employeeId,
-      date: today,
-      time: new Date().toLocaleTimeString(),
-      status,
-      wifiIp: ip,
-    });
+    const { utcIso, istTimeStr } = getTimestampsIST();
 
-    await attendance.save();
+const attendance = new Attendance({
+  employeeId,
+  date: today,              // keep date as you currently do (YYYY-MM-DD)
+  time: istTimeStr,         // formatted IST time string for display
+  timestamp: utcIso,        // canonical UTC timestamp (ISO) for queries
+  status,
+  wifiIp: ip,
+});
+
+await attendance.save();
+
+    // // Save attendance
+    // const attendance = new Attendance({
+    //   employeeId,
+    //   date: today,
+    //   time: new Date().toLocaleTimeString(),
+    //   status,
+    //   wifiIp: ip,
+    // });
+
+    // await attendance.save();
 
     res.json({
       message: `Attendance Marked (${status})`,
