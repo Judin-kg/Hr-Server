@@ -710,6 +710,7 @@ exports.getAllAttendance = async (req, res) => {
       finalRecords.push({
         employeeId: rec.employeeId,
         employeeName: emp ? emp.name : "Unknown",
+        employeeDepartment: emp ? emp.department : "Unknown",
         date: rec.date,
         time: rec.time,
         status: rec.status,
@@ -722,6 +723,7 @@ exports.getAllAttendance = async (req, res) => {
         finalRecords.push({
           employeeId: emp.empId,
           employeeName: emp.name,
+          employeeDepartment: emp.department,
           date: today,
           time: "00:00",
           status: "Absent",
@@ -839,6 +841,7 @@ exports.getAllDateAttendance = async (req, res) => {
         finalOutput.push({
           employeeId: rec.employeeId,
           employeeName: emp ? emp.name : "Unknown",
+          employeeDepartment: emp ? emp.department : "Unknown",
           date: rec.date,
           time: rec.time,
           status: rec.status
@@ -851,6 +854,7 @@ exports.getAllDateAttendance = async (req, res) => {
           finalOutput.push({
             employeeId: emp.empId,
             employeeName: emp.name,
+            employeeDepartment: emp.department,
             date,
             time: "00:00",
             status: "Absent"
