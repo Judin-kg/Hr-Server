@@ -93,7 +93,8 @@ seedEmployee()
 app.use("/api/attendance", attendanceRoutes);
 app.use("/api/employee", employeeRoutes);
 app.use("/api/department", departmentRoutes);
-
+app.use("/api/employer", require("./routes/employerRoutes"));
+app.use("/api/teamhead", require("./routes/teamhead"));
 // Root Check
 app.get("/", (req, res) => res.send("HR Attendance API Running"));
 
