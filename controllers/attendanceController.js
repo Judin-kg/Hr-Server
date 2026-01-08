@@ -228,9 +228,9 @@ exports.markAttendance = async (req, res) => {
     const now = getISTMinutes();
 
     const startPresent = 9 * 60;             // 9:00 AM
-    const endPresent = 10 * 60 + 10;         // 10:10 AM
+    const endPresent = 10 * 60 + 15;         // 10:15 AM
 
-    const startLate = endPresent;            // 10:10 AM
+    const startLate = endPresent;            // 10:15 AM
     const endLate = 10 * 60 + 30;            // 10:30 AM
 
     const startHalf = endLate;               // 10:30 AM
