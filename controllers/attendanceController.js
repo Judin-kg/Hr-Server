@@ -160,7 +160,7 @@ const Attendance = require("../models/Attendance");
 const Employee = require("../models/Employee");
 
 // Company WiFi IP
-const COMPANY_IP_PREFIX = "223.188.109.186";
+const COMPANY_IP_PREFIX = "49.47.196.146";
 
 // Convert to IST Minutes
 function getISTMinutes() {
