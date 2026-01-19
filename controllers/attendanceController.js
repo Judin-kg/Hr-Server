@@ -153,6 +153,156 @@
 
 
 
+//maincode
+
+
+// const Attendance = require("../models/Attendance");
+// const Employee = require("../models/Employee");
+
+// // Company WiFi IP
+// const COMPANY_IP_PREFIX = "49.47.196.146";
+
+// // Convert to IST Minutes
+// function getISTMinutes() {
+//   const now = new Date();
+//   const istOffset = 5.5 * 60 * 60 * 1000;
+//   const ist = new Date(now.getTime() + istOffset);
+//   return ist.getHours() * 60 + ist.getMinutes();
+// }
+
+// // -------------------------------------------------------------
+// // CREATE UTC + IST TIMESTAMP VALUES
+// // -------------------------------------------------------------
+// function getTimestampsIST() {
+//   const now = new Date();
+
+//   // UTC timestamp (ISO)
+//   const utcIso = now.toISOString();
+
+//   // Compute IST time
+//   const istOffset = 5.5 * 60 * 60 * 1000;
+//   const ist = new Date(now.getTime() + istOffset);
+
+//   // Format IST display time
+//   const istTimeStr = ist.toLocaleTimeString("en-IN", {
+//     hour: "2-digit",
+//     minute: "2-digit",
+//     second: "2-digit",
+//     hour12: true,
+//   });
+
+//   return { utcIso, istTimeStr };
+// }
+
+
+// exports.markAttendance = async (req, res) => {
+//   try {
+//     const { employeeId } = req.body;
+
+//     if (!employeeId || employeeId.trim() === "") {
+//       return res.status(400).json({ message: "Employee ID is required." });
+//     }
+
+//     // Check employee exists
+//     const employee = await Employee.findOne({ empId: employeeId });
+//     if (!employee) {
+//       return res.status(404).json({ message: "Invalid Employee ID!" });
+//     }
+
+//     // --- WiFi IP Check ---
+//     let ip =
+//       req.headers["x-forwarded-for"]?.split(",")[0].trim() ||
+//       req.socket.remoteAddress ||
+//       req.connection.remoteAddress;
+
+//     ip = ip.replace("::ffff:", "");
+//     console.log("User IP:", ip);
+
+//     if (!ip.startsWith(COMPANY_IP_PREFIX)) {
+//       return res.status(403).json({
+//         message: "Attendance failed. Connect to Company WiFi.",
+//       });
+//     }
+
+//     // --- TIME RANGE CALCULATION ---
+//     const now = getISTMinutes();
+
+//     const startPresent = 9 * 60;             // 9:00 AM
+//     const endPresent = 10 * 60 + 15;         // 10:15 AM
+
+//     const startLate = endPresent;            // 10:15 AM
+//     const endLate = 10 * 60 + 30;            // 10:30 AM
+
+//     const startHalf = endLate;               // 10:30 AM
+//     const endHalf = 16 * 60;                 // 4:00 PM
+
+//     let status = "";
+
+//     if (now >= startPresent && now <= endPresent) {
+//       status = "Present";
+//     } 
+//     else if (now > startLate && now <= endLate) {
+//       status = "Late";
+//     } 
+//     else if (now > startHalf && now <= endHalf) {
+//       status = "Half Day";
+//     } 
+//     else {
+//       return res.status(403).json({
+//         message: "Attendance allowed only between 9:00 AM and 4:00 PM",
+//       });
+//     }
+
+//     const today = new Date().toISOString().split("T")[0];
+
+//     // Check duplicate attendance
+//     const exists = await Attendance.findOne({
+//       employeeId,
+//       date: today,
+//     });
+
+//     if (exists) {
+//       return res.status(400).json({
+//         message: "Attendance already marked for today!",
+//       });
+//     }
+
+//     const { utcIso, istTimeStr } = getTimestampsIST();
+
+// const attendance = new Attendance({
+//   employeeId,
+//   date: today,              // keep date as you currently do (YYYY-MM-DD)
+//   time: istTimeStr,         // formatted IST time string for display
+//   timestamp: utcIso,        // canonical UTC timestamp (ISO) for queries
+//   status,
+//   wifiIp: ip,
+// });
+
+// await attendance.save();
+
+//     // // Save attendance
+//     // const attendance = new Attendance({
+//     //   employeeId,
+//     //   date: today,
+//     //   time: new Date().toLocaleTimeString(),
+//     //   status,
+//     //   wifiIp: ip,
+//     // });
+
+//     // await attendance.save();
+
+//     res.json({
+//       message: `Attendance Marked (${status})`,
+//       attendance,
+//     });
+
+//   } catch (err) {
+//     console.error("Attendance Error:", err);
+//     res.status(500).json({ message: "Server Error" });
+//   }
+// };
+
+
 
 
 
@@ -162,7 +312,11 @@ const Employee = require("../models/Employee");
 // Company WiFi IP
 const COMPANY_IP_PREFIX = "49.47.196.146";
 
-// Convert to IST Minutes
+// Office GPS
+const OFFICE_LAT = 11.747809;
+const OFFICE_LNG = 75.494860;
+const OFFICE_RADIUS = 150; // meters
+
 function getISTMinutes() {
   const now = new Date();
   const istOffset = 5.5 * 60 * 60 * 1000;
@@ -170,20 +324,13 @@ function getISTMinutes() {
   return ist.getHours() * 60 + ist.getMinutes();
 }
 
-// -------------------------------------------------------------
-// CREATE UTC + IST TIMESTAMP VALUES
-// -------------------------------------------------------------
 function getTimestampsIST() {
   const now = new Date();
-
-  // UTC timestamp (ISO)
   const utcIso = now.toISOString();
 
-  // Compute IST time
   const istOffset = 5.5 * 60 * 60 * 1000;
   const ist = new Date(now.getTime() + istOffset);
 
-  // Format IST display time
   const istTimeStr = ist.toLocaleTimeString("en-IN", {
     hour: "2-digit",
     minute: "2-digit",
@@ -194,105 +341,99 @@ function getTimestampsIST() {
   return { utcIso, istTimeStr };
 }
 
+// Distance formula
+function getDistance(lat1, lon1, lat2, lon2) {
+  const R = 6371000;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(lat1 * Math.PI / 180) *
+      Math.cos(lat2 * Math.PI / 180) *
+      Math.sin(dLon / 2) ** 2;
+
+  return R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)));
+}
 
 exports.markAttendance = async (req, res) => {
   try {
-    const { employeeId } = req.body;
+    const { employeeId, latitude, longitude } = req.body;
 
-    if (!employeeId || employeeId.trim() === "") {
+    if (!employeeId) {
       return res.status(400).json({ message: "Employee ID is required." });
     }
 
-    // Check employee exists
     const employee = await Employee.findOne({ empId: employeeId });
     if (!employee) {
       return res.status(404).json({ message: "Invalid Employee ID!" });
     }
 
-    // --- WiFi IP Check ---
+    // -------- WIFI CHECK ----------
     let ip =
       req.headers["x-forwarded-for"]?.split(",")[0].trim() ||
       req.socket.remoteAddress ||
       req.connection.remoteAddress;
 
     ip = ip.replace("::ffff:", "");
-    console.log("User IP:", ip);
+    let verifiedByWifi = ip.startsWith(COMPANY_IP_PREFIX);
 
-    if (!ip.startsWith(COMPANY_IP_PREFIX)) {
-      return res.status(403).json({
-        message: "Attendance failed. Connect to Company WiFi.",
-      });
+    // -------- GPS FALLBACK ----------
+    if (!verifiedByWifi) {
+      if (!latitude || !longitude) {
+        return res.status(403).json({ message: "WiFi not detected. GPS required." });
+      }
+
+      const distance = getDistance(
+        OFFICE_LAT,
+        OFFICE_LNG,
+        latitude,
+        longitude
+      );
+
+      if (distance > OFFICE_RADIUS) {
+        return res.status(403).json({ message: "You are outside office location." });
+      }
     }
 
-    // --- TIME RANGE CALCULATION ---
+    // -------- TIME LOGIC ----------
     const now = getISTMinutes();
 
-    const startPresent = 9 * 60;             // 9:00 AM
-    const endPresent = 10 * 60 + 15;         // 10:15 AM
-
-    const startLate = endPresent;            // 10:15 AM
-    const endLate = 10 * 60 + 30;            // 10:30 AM
-
-    const startHalf = endLate;               // 10:30 AM
-    const endHalf = 16 * 60;                 // 4:00 PM
+    const startPresent = 9 * 60;
+    const endPresent = 10 * 60 + 15;
+    const endLate = 10 * 60 + 30;
+    const endHalf = 16 * 60;
 
     let status = "";
-
-    if (now >= startPresent && now <= endPresent) {
-      status = "Present";
-    } 
-    else if (now > startLate && now <= endLate) {
-      status = "Late";
-    } 
-    else if (now > startHalf && now <= endHalf) {
-      status = "Half Day";
-    } 
-    else {
-      return res.status(403).json({
-        message: "Attendance allowed only between 9:00 AM and 4:00 PM",
-      });
-    }
+    if (now <= endPresent) status = "Present";
+    else if (now <= endLate) status = "Late";
+    else if (now <= endHalf) status = "Half Day";
+    else return res.status(403).json({ message: "Attendance time over" });
 
     const today = new Date().toISOString().split("T")[0];
 
-    // Check duplicate attendance
-    const exists = await Attendance.findOne({
-      employeeId,
-      date: today,
-    });
-
+    const exists = await Attendance.findOne({ employeeId, date: today });
     if (exists) {
-      return res.status(400).json({
-        message: "Attendance already marked for today!",
-      });
+      return res.status(400).json({ message: "Attendance already marked!" });
     }
 
     const { utcIso, istTimeStr } = getTimestampsIST();
 
-const attendance = new Attendance({
-  employeeId,
-  date: today,              // keep date as you currently do (YYYY-MM-DD)
-  time: istTimeStr,         // formatted IST time string for display
-  timestamp: utcIso,        // canonical UTC timestamp (ISO) for queries
-  status,
-  wifiIp: ip,
-});
+    const attendance = new Attendance({
+      employeeId,
+      date: today,
+      time: istTimeStr,
+      timestamp: utcIso,
+      status,
+      wifiIp: verifiedByWifi ? ip : "GPS_VERIFIED",
+      latitude,
+      longitude,
+    });
 
-await attendance.save();
-
-    // // Save attendance
-    // const attendance = new Attendance({
-    //   employeeId,
-    //   date: today,
-    //   time: new Date().toLocaleTimeString(),
-    //   status,
-    //   wifiIp: ip,
-    // });
-
-    // await attendance.save();
+    await attendance.save();
 
     res.json({
-      message: `Attendance Marked (${status})`,
+      message: `Attendance Marked Successfully (${status})`,
       attendance,
     });
 
@@ -301,6 +442,26 @@ await attendance.save();
     res.status(500).json({ message: "Server Error" });
   }
 };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
