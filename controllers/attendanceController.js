@@ -160,7 +160,7 @@ const Attendance = require("../models/Attendance");
 const Employee = require("../models/Employee");
 
 // Company WiFi IP
-const COMPANY_IP_PREFIX = "49.47.197.59";
+const COMPANY_IP_PREFIX = "192.168.29.1";
 
 // Convert to IST Minutes
 function getISTMinutes() {
@@ -375,6 +375,9 @@ exports.updateAttendance = async (req, res) => {
     res.status(500).json({ message: "Server Error" });
   }
 };
+
+
+
 
 
 
