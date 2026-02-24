@@ -310,7 +310,7 @@ const Attendance = require("../models/Attendance");
 const Employee = require("../models/Employee");
 
 // Company WiFi IP
-const COMPANY_IP_PREFIX = "192.168.29.1";
+const COMPANY_IP_PREFIX = "192.168.29.93";
 
 // Office GPS
 const OFFICE_LAT = 11.747809;
