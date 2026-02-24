@@ -310,7 +310,7 @@ const Attendance = require("../models/Attendance");
 const Employee = require("../models/Employee");
 
 // Company WiFi IP
-const COMPANY_IP_PREFIX = "192.168.29.169";
+const COMPANY_IP_PREFIX = "192.168.29.1";
 
 // Office GPS
 const OFFICE_LAT = 11.747809;
@@ -359,7 +359,7 @@ function getDistance(lat1, lon1, lat2, lon2) {
 exports.markAttendance = async (req, res) => {
   try {
     const { employeeId, latitude, longitude } = req.body;
-
+   
     if (!employeeId) {
       return res.status(400).json({ message: "Employee ID is required." });
     }
@@ -375,8 +375,15 @@ exports.markAttendance = async (req, res) => {
       req.socket.remoteAddress ||
       req.connection.remoteAddress;
 
+console.log(ip,"ippppppppppp");
+
+
+
     ip = ip.replace("::ffff:", "");
     let verifiedByWifi = ip.startsWith(COMPANY_IP_PREFIX);
+
+    console.log(verifiedByWifi,"verifiedby wifiiiiiiii");
+    
 
     // -------- GPS FALLBACK ----------
     if (!verifiedByWifi) {
@@ -413,6 +420,9 @@ exports.markAttendance = async (req, res) => {
     const today = new Date().toISOString().split("T")[0];
 
     const exists = await Attendance.findOne({ employeeId, date: today });
+
+    console.log(exists,"existtttttttttt");
+    
     if (exists) {
       return res.status(400).json({ message: "Attendance already marked!" });
     }
@@ -437,16 +447,14 @@ exports.markAttendance = async (req, res) => {
       attendance,
     });
 
+    console.log(attendance,"attendenceeeeeee");
+    
+
   } catch (err) {
     console.error("Attendance Error:", err);
     res.status(500).json({ message: "Server Error" });
   }
 };
-
-
-
-
-
 
 
 
