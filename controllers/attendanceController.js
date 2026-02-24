@@ -310,7 +310,7 @@ const Attendance = require("../models/Attendance");
 const Employee = require("../models/Employee");
 
 // Company WiFi IP
-const COMPANY_IP_PREFIX = "14:39:45.25";
+const COMPANY_IP_PREFIX = "192.168.29.167";
 
 // Office GPS
 const OFFICE_LAT = 11.747809;
@@ -457,6 +457,146 @@ console.log(ip,"ippppppppppp");
 };
 
 
+
+
+
+
+
+
+// exports.markAttendance = async (req, res) => {
+//   try {
+//     const { employeeId, latitude, longitude } = req.body;
+
+//     console.log("--------- NEW ATTENDANCE REQUEST ---------");
+//     console.log("Request Body:", req.body);
+
+//     if (!employeeId) {
+//       console.log("Employee ID missing");
+//       return res.status(400).json({ message: "Employee ID is required." });
+//     }
+
+//     const employee = await Employee.findOne({ empId: employeeId });
+//     console.log("Employee Found:", employee);
+
+//     if (!employee) {
+//       console.log("Invalid Employee ID");
+//       return res.status(404).json({ message: "Invalid Employee ID!" });
+//     }
+
+//     // -------- WIFI CHECK ----------
+//     let ip =
+//       req.headers["x-forwarded-for"]?.split(",")[0].trim() ||
+//       req.socket.remoteAddress ||
+//       req.connection.remoteAddress;
+
+//     ip = ip.replace("::ffff:", "");
+
+//     console.log("Client IP:", ip);
+//     console.log("Company IP Prefix:", COMPANY_IP_PREFIX);
+
+//     let verifiedByWifi = ip.startsWith(COMPANY_IP_PREFIX);
+//     console.log("WiFi Verified:", verifiedByWifi);
+
+//     // -------- GPS FALLBACK ----------
+//     let distance = null;
+
+//     if (!verifiedByWifi) {
+//       console.log("WiFi not matched. Checking GPS...");
+
+//       if (!latitude || !longitude) {
+//         console.log("GPS Not Provided");
+//         return res.status(403).json({ message: "WiFi not detected. GPS required." });
+//       }
+
+//       distance = getDistance(
+//         OFFICE_LAT,
+//         OFFICE_LNG,
+//         latitude,
+//         longitude
+//       );
+
+//       console.log("User Latitude:", latitude);
+//       console.log("User Longitude:", longitude);
+//       console.log("Office Latitude:", OFFICE_LAT);
+//       console.log("Office Longitude:", OFFICE_LNG);
+//       console.log("Calculated Distance (meters):", distance);
+
+//       if (distance > OFFICE_RADIUS) {
+//         console.log("User outside office radius");
+//         return res.status(403).json({ message: "You are outside office location." });
+//       }
+
+//       console.log("GPS Verified Successfully");
+//     }
+
+//     // -------- TIME LOGIC ----------
+//     const now = getISTMinutes();
+//     console.log("Current IST Minutes:", now);
+
+//     const startPresent = 9 * 60;
+//     const endPresent = 10 * 60 + 15;
+//     const endLate = 10 * 60 + 30;
+//     const endHalf = 16 * 60;
+
+//     console.log("Time Rules:");
+//     console.log("Present Until:", endPresent);
+//     console.log("Late Until:", endLate);
+//     console.log("Half Day Until:", endHalf);
+
+//     let status = "";
+
+//     if (now <= endPresent) status = "Present";
+//     else if (now <= endLate) status = "Late";
+//     else if (now <= endHalf) status = "Half Day";
+//     else {
+//       console.log("Attendance time over");
+//       return res.status(403).json({ message: "Attendance time over" });
+//     }
+
+//     console.log("Final Status:", status);
+
+//     const today = new Date().toISOString().split("T")[0];
+//     console.log("Today Date:", today);
+
+//     const exists = await Attendance.findOne({ employeeId, date: today });
+//     console.log("Already Exists:", exists);
+
+//     if (exists) {
+//       console.log("Attendance already marked");
+//       return res.status(400).json({ message: "Attendance already marked!" });
+//     }
+
+//     const { utcIso, istTimeStr } = getTimestampsIST();
+//     console.log("UTC Timestamp:", utcIso);
+//     console.log("IST Time String:", istTimeStr);
+
+//     const attendance = new Attendance({
+//       employeeId,
+//       date: today,
+//       time: istTimeStr,
+//       timestamp: utcIso,
+//       status,
+//       wifiIp: verifiedByWifi ? ip : "GPS_VERIFIED",
+//       latitude,
+//       longitude,
+//     });
+
+//     console.log("Saving Attendance Object:", attendance);
+
+//     await attendance.save();
+
+//     console.log("Attendance Saved Successfully");
+
+//     res.json({
+//       message: `Attendance Marked Successfully (${status})`,
+//       attendance,
+//     });
+
+//   } catch (err) {
+//     console.error("Attendance Error:", err);
+//     res.status(500).json({ message: "Server Error" });
+//   }
+// };
 
 
 
